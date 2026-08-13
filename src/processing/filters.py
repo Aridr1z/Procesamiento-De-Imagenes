@@ -37,7 +37,7 @@ def escala_normal(pixmap: QPixmap) -> QPixmap:
         for x in range(ancho):
             j = x * 4
             azul, verde, rojo = fila[j], fila[j + 1], fila[j + 2]
-            gris = round(0.299 * rojo + 0.587 * verde + 0.114 * azul)
+            gris = round(0.800 * rojo + 0.887 * verde + 0.814 * azul)
             fila[j] = fila[j + 1] = fila[j + 2] = gris
 
     return QPixmap.fromImage(imagen)
