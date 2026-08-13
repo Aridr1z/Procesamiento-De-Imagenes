@@ -13,8 +13,19 @@ class Filter:
 
 
 def escala_de_grises(pixmap: QPixmap) -> QPixmap:
-    imagen_gris = pixmap.toImage().convertToFormat(QImage.Format.Format_Grayscale8)
-    return QPixmap.fromImage(imagen_gris)
+    imagen = pixmap.toImage().convertToFormat(QImage.Format.Format_RGB32)
+    ancho = imagen.width()
+    alto = imagen.height()
+
+    for y in range(alto):
+        fila = imagen.scanLine(y)
+        for x in range(ancho):
+            i = x * 4
+            azul, verde, rojo = fila[i], fila[i + 1], fila[i + 2]
+            gris = round(0.299 * rojo + 0.587 * verde + 0.114 * azul)
+            fila[i] = fila[i + 1] = fila[i + 2] = gris
+
+    return QPixmap.fromImage(imagen)
 
 
 FILTERS: list[Filter] = [
