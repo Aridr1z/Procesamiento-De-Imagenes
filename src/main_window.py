@@ -1,9 +1,11 @@
 from pathlib import Path
 
 from PySide6.QtGui import QAction, QImageReader, QKeySequence, QPixmap
-from PySide6.QtWidgets import QFileDialog, QMainWindow, QMessageBox, QToolBar
+from PySide6.QtWidgets import QFileDialog, QMainWindow, QMessageBox, QSplitter, QToolBar
 
+from src.filters_panel import FiltersPanel
 from src.image_view import ImageView
+from src.processing.filters import Filter
 
 
 def _supported_extensions_filter() -> str:
@@ -18,7 +20,15 @@ class MainWindow(QMainWindow):
         self.resize(1000, 700)
 
         self.image_view = ImageView(self)
-        self.setCentralWidget(self.image_view)
+        self.filters_panel = FiltersPanel(self)
+        self.filters_panel.filter_selected.connect(self.apply_filter)
+
+        splitter = QSplitter(self)
+        splitter.addWidget(self.image_view)
+        splitter.addWidget(self.filters_panel)
+        splitter.setStretchFactor(0, 1)
+        splitter.setStretchFactor(1, 0)
+        self.setCentralWidget(splitter)
 
         self._current_path: Path | None = None
 
@@ -95,3 +105,8 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(
             f"{path.name}  |  {pixmap.width()} x {pixmap.height()} px"
         )
+
+    def apply_filter(self, filter_: Filter) -> None:
+        if not self.image_view.has_image():
+            return
+        self.image_view.set_pixmap(filter_.apply(self.image_view.pixmap()))

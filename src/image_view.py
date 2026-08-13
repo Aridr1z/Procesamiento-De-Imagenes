@@ -26,6 +26,9 @@ class ImageView(QGraphicsView):
     def has_image(self) -> bool:
         return not self._pixmap_item.pixmap().isNull()
 
+    def pixmap(self) -> QPixmap:
+        return self._pixmap_item.pixmap()
+
     def fit_to_window(self) -> None:
         if self.has_image():
             self.fitInView(self._pixmap_item, Qt.AspectRatioMode.KeepAspectRatio)
