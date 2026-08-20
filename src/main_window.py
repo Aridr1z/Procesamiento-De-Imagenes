@@ -31,6 +31,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(splitter)
 
         self._current_path: Path | None = None
+        self._original_pixmap: QPixmap | None = None
 
         self._build_actions()
         self._build_toolbar()
@@ -56,6 +57,9 @@ class MainWindow(QMainWindow):
         self.actual_size_action = QAction("Tamano real", self)
         self.actual_size_action.triggered.connect(self.image_view.actual_size)
 
+        self.reset_action = QAction("Restablecer imagen", self)
+        self.reset_action.triggered.connect(self.reset_image)
+
         self.exit_action = QAction("&Salir", self)
         self.exit_action.setShortcut(QKeySequence.StandardKey.Quit)
         self.exit_action.triggered.connect(self.close)
@@ -68,6 +72,8 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self.zoom_out_action)
         toolbar.addAction(self.fit_action)
         toolbar.addAction(self.actual_size_action)
+        toolbar.addSeparator()
+        toolbar.addAction(self.reset_action)
         self.addToolBar(toolbar)
 
     def _build_menu(self) -> None:
@@ -81,6 +87,8 @@ class MainWindow(QMainWindow):
         view_menu.addAction(self.zoom_out_action)
         view_menu.addAction(self.fit_action)
         view_menu.addAction(self.actual_size_action)
+        view_menu.addSeparator()
+        view_menu.addAction(self.reset_action)
 
     def open_image(self) -> None:
         path_str, _ = QFileDialog.getOpenFileName(
@@ -100,6 +108,7 @@ class MainWindow(QMainWindow):
             return
 
         self._current_path = path
+        self._original_pixmap = pixmap
         self.image_view.set_pixmap(pixmap)
         self.setWindowTitle(f"Visualizador de Imagenes - {path.name}")
         self.statusBar().showMessage(
@@ -110,3 +119,8 @@ class MainWindow(QMainWindow):
         if not self.image_view.has_image():
             return
         self.image_view.set_pixmap(filter_.apply(self.image_view.pixmap()))
+
+    def reset_image(self) -> None:
+        if self._original_pixmap is None:
+            return
+        self.image_view.set_pixmap(self._original_pixmap)
