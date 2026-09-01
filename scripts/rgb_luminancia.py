@@ -3,7 +3,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.processing.filters import _lineal_a_srgb, _srgb_a_lineal
+from src.processing.color_math import lineal_a_srgb, srgb_a_lineal
 
 
 def pedir_canal(nombre: str) -> int:
@@ -29,9 +29,9 @@ def main() -> None:
     print(f"Gs = {verde}/255 = {gs:.4f}")
     print(f"Bs = {azul}/255 = {bs:.4f}\n")
 
-    rl = _srgb_a_lineal(rojo)
-    gl = _srgb_a_lineal(verde)
-    bl = _srgb_a_lineal(azul)
+    rl = srgb_a_lineal(rojo)
+    gl = srgb_a_lineal(verde)
+    bl = srgb_a_lineal(azul)
     print(f"RL = {rl:.4f}")
     print(f"GL = {gl:.4f}")
     print(f"BL = {bl:.4f}\n")
@@ -46,7 +46,7 @@ def main() -> None:
     cs_lineal = r_term + g_term + b_term
     print(f"Cs (lineal) = {cs_lineal:.4f}\n")
 
-    cs_srgb = _lineal_a_srgb(cs_lineal)
+    cs_srgb = lineal_a_srgb(cs_lineal)
     print(f"Cs (0-255) = {cs_srgb}")
 
 

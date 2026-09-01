@@ -9,7 +9,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from src.processing.filters import FILTERS, Filter, luminancia_relativa_pixel
+from src.processing.color_math import luminancia_relativa_pixel
+from src.processing.filters import FILTERS, Filter
 
 
 class FiltersPanel(QWidget):
