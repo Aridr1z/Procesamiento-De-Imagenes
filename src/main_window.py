@@ -4,6 +4,7 @@ from PySide6.QtGui import QAction, QImageReader, QKeySequence, QPixmap
 from PySide6.QtWidgets import QFileDialog, QMainWindow, QMessageBox, QSplitter, QToolBar
 
 from src.filters_panel import FiltersPanel
+from src.histogram_dialog import HistogramDialog
 from src.image_view import ImageView
 from src.processing.filters import Filter
 
@@ -60,6 +61,9 @@ class MainWindow(QMainWindow):
         self.reset_action = QAction("Restablecer imagen", self)
         self.reset_action.triggered.connect(self.reset_image)
 
+        self.histogram_action = QAction("&Histograma...", self)
+        self.histogram_action.triggered.connect(self.show_histogram)
+
         self.exit_action = QAction("&Salir", self)
         self.exit_action.setShortcut(QKeySequence.StandardKey.Quit)
         self.exit_action.triggered.connect(self.close)
@@ -74,6 +78,7 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self.actual_size_action)
         toolbar.addSeparator()
         toolbar.addAction(self.reset_action)
+        toolbar.addAction(self.histogram_action)
         self.addToolBar(toolbar)
 
     def _build_menu(self) -> None:
@@ -89,6 +94,7 @@ class MainWindow(QMainWindow):
         view_menu.addAction(self.actual_size_action)
         view_menu.addSeparator()
         view_menu.addAction(self.reset_action)
+        view_menu.addAction(self.histogram_action)
 
     def open_image(self) -> None:
         path_str, _ = QFileDialog.getOpenFileName(
@@ -124,3 +130,8 @@ class MainWindow(QMainWindow):
         if self._original_pixmap is None:
             return
         self.image_view.set_pixmap(self._original_pixmap)
+
+    def show_histogram(self) -> None:
+        if not self.image_view.has_image():
+            return
+        HistogramDialog(self.image_view.pixmap(), self).exec()

@@ -1,8 +1,9 @@
 # Procesamiento de Imagenes
 
 Proyecto de Python para procesamiento de imagenes. Etapa actual: visor de
-imagenes de escritorio (base sobre la que se agregaran operaciones de
-procesamiento mas adelante: filtros, transformaciones, analisis, etc.).
+imagenes de escritorio con filtros basicos de color y calculo/visualizacion
+de histograma (base sobre la que se agregaran mas operaciones de
+procesamiento: transformaciones geometricas, ecualizacion, etc.).
 
 ## Stack
 
@@ -10,14 +11,24 @@ procesamiento mas adelante: filtros, transformaciones, analisis, etc.).
 - PySide6 (Qt for Python) para la interfaz de escritorio
 - `QGraphicsView`/`QGraphicsScene` para el render de la imagen (zoom con
   rueda del mouse, pan con drag, ajustar a ventana)
+- Procesamiento en Python puro (sin numpy/opencv), iterando sobre
+  `QImage.scanLine` en formato `Format_RGB32` (orden de bytes BGRA)
 
 ## Estructura
 
 ```
-main.py               # punto de entrada, arranca QApplication + MainWindow
+main.py                    # punto de entrada, arranca QApplication + MainWindow
 src/
-  main_window.py       # QMainWindow: menu, toolbar, dialogo de abrir archivo
-  image_view.py         # widget de visualizacion (zoom/pan) de un QPixmap
+  main_window.py            # QMainWindow: menu, toolbar, abrir archivo, histograma
+  image_view.py              # widget de visualizacion (zoom/pan) de un QPixmap
+  filters_panel.py           # panel lateral: botones de filtros + calculadora RGB
+  histogram_dialog.py        # dialogo que muestra el histograma de la imagen actual
+  histogram_view.py          # widget que dibuja el histograma (curvas R/G/B)
+  processing/
+    filters.py                # filtros sobre QPixmap (escala de grises, etc.)
+    color_math.py              # conversion sRGB<->lineal, luminancia relativa
+    histogram.py                # calculo de histograma (conteos por canal 0-255)
+    distancias.py                # distancias euclidiana, city block, chessboard
 requirements.txt
 ```
 
@@ -42,10 +53,11 @@ python main.py
 
 ## Proximos pasos esperados (no implementados aun)
 
-- Operaciones de procesamiento (escala de grises, filtros, transformaciones
-  geometricas, histogramas, etc.), probablemente con `numpy`/`opencv-python`.
+- Ecualizacion de histograma (distinta del histograma ya implementado, que
+  solo calcula/muestra la distribucion de intensidades).
+- Transformaciones geometricas.
 - Panel para aplicar/comparar operaciones sobre la imagen cargada.
 
-No agregar estas dependencias ni funcionalidades hasta que se pidan
-explicitamente; se documentan aca solo como contexto de hacia donde va el
-proyecto.
+No agregar `numpy`/`opencv-python` ni otras dependencias/funcionalidades
+hasta que se pidan explicitamente; se documentan aca solo como contexto de
+hacia donde va el proyecto.
