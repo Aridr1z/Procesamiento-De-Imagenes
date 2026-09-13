@@ -1,12 +1,27 @@
 from pathlib import Path
 
 from PySide6.QtGui import QAction, QImageReader, QKeySequence, QPixmap
-from PySide6.QtWidgets import QFileDialog, QMainWindow, QMessageBox, QSplitter, QToolBar
+from PySide6.QtWidgets import (
+    QFileDialog,
+    QMainWindow,
+    QMenu,
+    QMessageBox,
+    QSplitter,
+    QToolBar,
+    QToolButton,
+)
 
 from src.filters_panel import FiltersPanel
 from src.histogram_dialog import HistogramDialog
 from src.image_view import ImageView
-from src.processing.filters import Filter
+from src.processing.distancias import (
+    distancia_chessboard,
+    distancia_city_block,
+    distancia_euclidiana,
+)
+from src.processing.filters import FILTERS, Filter
+
+IMAGEN_PROYECTO_P1 = Path(__file__).resolve().parent / "images" / "images.jpeg"
 
 
 def _supported_extensions_filter() -> str:
@@ -23,6 +38,11 @@ class MainWindow(QMainWindow):
         self.image_view = ImageView(self)
         self.filters_panel = FiltersPanel(self)
         self.filters_panel.filter_selected.connect(self.apply_filter)
+        self.filters_panel.points_mode_requested.connect(self.iniciar_seleccion_puntos)
+        self.image_view.point_a_selected.connect(
+            lambda _punto: self.filters_panel.marcar_punto_a_elegido()
+        )
+        self.image_view.points_selected.connect(self.mostrar_distancias)
 
         splitter = QSplitter(self)
         splitter.addWidget(self.image_view)
@@ -68,8 +88,22 @@ class MainWindow(QMainWindow):
         self.exit_action.setShortcut(QKeySequence.StandardKey.Quit)
         self.exit_action.triggered.connect(self.close)
 
+        self.proyecto_p1_action = QAction("Proyecto P1", self)
+        self.proyecto_p1_action.triggered.connect(self.ejecutar_proyecto_p1)
+
     def _build_toolbar(self) -> None:
         toolbar = QToolBar("Principal", self)
+
+        proyecto_menu = QMenu("Proyecto", self)
+        proyecto_menu.addAction(self.proyecto_p1_action)
+
+        self.proyecto_button = QToolButton(self)
+        self.proyecto_button.setText("Proyecto")
+        self.proyecto_button.setMenu(proyecto_menu)
+        self.proyecto_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        toolbar.addWidget(self.proyecto_button)
+        toolbar.addSeparator()
+
         toolbar.addAction(self.open_action)
         toolbar.addSeparator()
         toolbar.addAction(self.zoom_in_action)
@@ -135,3 +169,32 @@ class MainWindow(QMainWindow):
         if not self.image_view.has_image():
             return
         HistogramDialog(self.image_view.pixmap(), self).exec()
+
+    def ejecutar_proyecto_p1(self) -> None:
+        if not IMAGEN_PROYECTO_P1.exists():
+            QMessageBox.warning(
+                self,
+                "Error",
+                f"No se encontro la imagen del proyecto:\n{IMAGEN_PROYECTO_P1}",
+            )
+            return
+
+        self.load_image(IMAGEN_PROYECTO_P1)
+        filtro_luminancia = next(f for f in FILTERS if f.name == "Luminancia relativa")
+        self.apply_filter(filtro_luminancia)
+        self.show_histogram()
+
+    def iniciar_seleccion_puntos(self) -> None:
+        if not self.image_view.has_image():
+            QMessageBox.information(self, "Sin imagen", "Primero carga una imagen.")
+            return
+        self.image_view.start_point_picking()
+        self.filters_panel.iniciar_seleccion_puntos()
+
+    def mostrar_distancias(self, punto_a: tuple, punto_b: tuple) -> None:
+        distancias = {
+            "euclidiana": distancia_euclidiana(punto_a, punto_b),
+            "city_block": distancia_city_block(punto_a, punto_b),
+            "chessboard": distancia_chessboard(punto_a, punto_b),
+        }
+        self.filters_panel.mostrar_resultado_puntos(punto_a, punto_b, distancias)

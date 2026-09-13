@@ -15,6 +15,7 @@ from src.processing.filters import FILTERS, Filter
 
 class FiltersPanel(QWidget):
     filter_selected = Signal(Filter)
+    points_mode_requested = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -28,6 +29,7 @@ class FiltersPanel(QWidget):
         self._layout.addWidget(QLabel("Filtros"))
         self._build_buttons()
         self._layout.addStretch()
+        self._build_puntos_calculator()
         self._build_rgb_calculator()
 
     def _build_buttons(self) -> None:
@@ -43,6 +45,40 @@ class FiltersPanel(QWidget):
                 lambda _checked=False, f=filter_: self.filter_selected.emit(f)
             )
             self._layout.addWidget(button)
+
+    def _build_puntos_calculator(self) -> None:
+        separador = QFrame(self)
+        separador.setFrameShape(QFrame.Shape.HLine)
+        self._layout.addWidget(separador)
+
+        self._layout.addWidget(QLabel("Distancia entre dos puntos"))
+
+        self._boton_seleccionar_puntos = QPushButton("Seleccionar puntos en la imagen", self)
+        self._boton_seleccionar_puntos.clicked.connect(self.points_mode_requested.emit)
+        self._layout.addWidget(self._boton_seleccionar_puntos)
+
+        self._resultado_puntos_label = QLabel("Sin puntos seleccionados")
+        self._resultado_puntos_label.setWordWrap(True)
+        self._layout.addWidget(self._resultado_puntos_label)
+
+    def iniciar_seleccion_puntos(self) -> None:
+        self._boton_seleccionar_puntos.setEnabled(False)
+        self._resultado_puntos_label.setText("Haz click en el punto A de la imagen")
+
+    def marcar_punto_a_elegido(self) -> None:
+        self._resultado_puntos_label.setText("Haz click en el punto B de la imagen")
+
+    def mostrar_resultado_puntos(
+        self, punto_a: tuple, punto_b: tuple, distancias: dict[str, float]
+    ) -> None:
+        self._boton_seleccionar_puntos.setEnabled(True)
+        self._resultado_puntos_label.setText(
+            f"Punto A: {punto_a}\n"
+            f"Punto B: {punto_b}\n\n"
+            f"Euclidiana: {distancias['euclidiana']:.2f} px\n"
+            f"City block: {distancias['city_block']:.2f} px (movimientos ortogonales)\n"
+            f"Chessboard: {distancias['chessboard']:.2f} (movimientos tipo rey)"
+        )
 
     def _build_rgb_calculator(self) -> None:
         separador = QFrame(self)
