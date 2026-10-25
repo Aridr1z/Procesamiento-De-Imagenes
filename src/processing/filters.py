@@ -4,6 +4,7 @@ from typing import Callable
 from PySide6.QtGui import QImage, QPixmap
 
 from src.processing.color_math import luminancia_relativa_pixel
+from src.processing.suavizado import KERNEL_SUAVIZADO_3X3, Matriz, convolucionar
 
 FilterFunc = Callable[[QPixmap], QPixmap]
 
@@ -46,7 +47,31 @@ def luminancia_relativa(pixmap: QPixmap) -> QPixmap:
     return QPixmap.fromImage(imagen)
 
 
+def suavizado(pixmap: QPixmap) -> QPixmap:
+    imagen = pixmap.toImage().convertToFormat(QImage.Format.Format_RGB32)
+    ancho = imagen.width()
+    alto = imagen.height()
+
+    canales: list[Matriz] = [[], [], []]
+    for y in range(alto):
+        fila = imagen.scanLine(y)
+        for c in range(3):
+            canales[c].append([float(fila[x * 4 + c]) for x in range(ancho)])
+
+    suavizados = [convolucionar(canal, KERNEL_SUAVIZADO_3X3) for canal in canales]
+
+    for y in range(alto):
+        fila = imagen.scanLine(y)
+        for c in range(3):
+            fila_suavizada = suavizados[c][y]
+            for x in range(ancho):
+                fila[x * 4 + c] = min(max(round(fila_suavizada[x]), 0), 255)
+
+    return QPixmap.fromImage(imagen)
+
+
 FILTERS: list[Filter] = [
     Filter("Escala de grises", escala_de_grises),
     Filter("Luminancia relativa", luminancia_relativa),
+    Filter("Suavizado (promedio 3x3)", suavizado),
 ]
