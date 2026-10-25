@@ -16,6 +16,7 @@ from src.processing.filters import FILTERS, Filter
 class FiltersPanel(QWidget):
     filter_selected = Signal(Filter)
     points_mode_requested = Signal()
+    box_filter_requested = Signal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -28,6 +29,7 @@ class FiltersPanel(QWidget):
 
         self._layout.addWidget(QLabel("Filtros"))
         self._build_buttons()
+        self._build_box_filter()
         self._layout.addStretch()
         self._build_puntos_calculator()
         self._build_rgb_calculator()
@@ -45,6 +47,36 @@ class FiltersPanel(QWidget):
                 lambda _checked=False, f=filter_: self.filter_selected.emit(f)
             )
             self._layout.addWidget(button)
+
+    def _build_box_filter(self) -> None:
+        separador = QFrame(self)
+        separador.setFrameShape(QFrame.Shape.HLine)
+        self._layout.addWidget(separador)
+
+        self._layout.addWidget(QLabel("Filtro Box"))
+
+        tamano_layout = QHBoxLayout()
+        tamano_layout.addWidget(QLabel("Tamano (NxN)"))
+        self._tamano_box_spin = QSpinBox(self)
+        self._tamano_box_spin.setRange(3, 31)
+        self._tamano_box_spin.setSingleStep(2)
+        self._tamano_box_spin.setValue(3)
+        self._tamano_box_spin.editingFinished.connect(self._forzar_tamano_impar)
+        tamano_layout.addWidget(self._tamano_box_spin)
+        self._layout.addLayout(tamano_layout)
+
+        boton_box = QPushButton("Aplicar filtro Box", self)
+        boton_box.clicked.connect(self._emitir_filtro_box)
+        self._layout.addWidget(boton_box)
+
+    def _forzar_tamano_impar(self) -> None:
+        valor = self._tamano_box_spin.value()
+        if valor % 2 == 0:
+            self._tamano_box_spin.setValue(valor + 1)
+
+    def _emitir_filtro_box(self) -> None:
+        self._forzar_tamano_impar()
+        self.box_filter_requested.emit(self._tamano_box_spin.value())
 
     def _build_puntos_calculator(self) -> None:
         separador = QFrame(self)

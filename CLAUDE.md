@@ -29,6 +29,8 @@ src/
     color_math.py              # conversion sRGB<->lineal, luminancia relativa
     histogram.py                # calculo de histograma (conteos por canal 0-255)
     distancias.py                # distancias euclidiana, city block, chessboard
+    suavizado.py                 # convolucion generica + kernel promedio 3x3
+    box.py                       # filtro Box NxN (promedio separable, suma deslizante)
 requirements.txt
 ```
 

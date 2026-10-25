@@ -3,6 +3,7 @@ from typing import Callable
 
 from PySide6.QtGui import QImage, QPixmap
 
+from src.processing.box import filtro_box
 from src.processing.color_math import luminancia_relativa_pixel
 from src.processing.suavizado import KERNEL_SUAVIZADO_3X3, Matriz, convolucionar
 
@@ -47,7 +48,9 @@ def luminancia_relativa(pixmap: QPixmap) -> QPixmap:
     return QPixmap.fromImage(imagen)
 
 
-def suavizado(pixmap: QPixmap) -> QPixmap:
+def _aplicar_por_canal(
+    pixmap: QPixmap, operacion: Callable[[Matriz], Matriz]
+) -> QPixmap:
     imagen = pixmap.toImage().convertToFormat(QImage.Format.Format_RGB32)
     ancho = imagen.width()
     alto = imagen.height()
@@ -58,16 +61,26 @@ def suavizado(pixmap: QPixmap) -> QPixmap:
         for c in range(3):
             canales[c].append([float(fila[x * 4 + c]) for x in range(ancho)])
 
-    suavizados = [convolucionar(canal, KERNEL_SUAVIZADO_3X3) for canal in canales]
+    procesados = [operacion(canal) for canal in canales]
 
     for y in range(alto):
         fila = imagen.scanLine(y)
         for c in range(3):
-            fila_suavizada = suavizados[c][y]
+            fila_procesada = procesados[c][y]
             for x in range(ancho):
-                fila[x * 4 + c] = min(max(round(fila_suavizada[x]), 0), 255)
+                fila[x * 4 + c] = min(max(round(fila_procesada[x]), 0), 255)
 
     return QPixmap.fromImage(imagen)
+
+
+def suavizado(pixmap: QPixmap) -> QPixmap:
+    return _aplicar_por_canal(
+        pixmap, lambda canal: convolucionar(canal, KERNEL_SUAVIZADO_3X3)
+    )
+
+
+def box(pixmap: QPixmap, tamano: int) -> QPixmap:
+    return _aplicar_por_canal(pixmap, lambda canal: filtro_box(canal, tamano))
 
 
 FILTERS: list[Filter] = [
