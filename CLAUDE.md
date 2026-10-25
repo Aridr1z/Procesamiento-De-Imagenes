@@ -31,6 +31,7 @@ src/
     distancias.py                # distancias euclidiana, city block, chessboard
     suavizado.py                 # convolucion generica + kernel promedio 3x3
     box.py                       # filtro Box NxN (promedio separable, suma deslizante)
+    gauss.py                     # filtro Gaussiano NxN con sigma (kernel separable)
 requirements.txt
 ```
 

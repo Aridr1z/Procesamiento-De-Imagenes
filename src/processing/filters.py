@@ -5,6 +5,7 @@ from PySide6.QtGui import QImage, QPixmap
 
 from src.processing.box import filtro_box
 from src.processing.color_math import luminancia_relativa_pixel
+from src.processing.gauss import filtro_gauss
 from src.processing.suavizado import KERNEL_SUAVIZADO_3X3, Matriz, convolucionar
 
 FilterFunc = Callable[[QPixmap], QPixmap]
@@ -81,6 +82,10 @@ def suavizado(pixmap: QPixmap) -> QPixmap:
 
 def box(pixmap: QPixmap, tamano: int) -> QPixmap:
     return _aplicar_por_canal(pixmap, lambda canal: filtro_box(canal, tamano))
+
+
+def gauss(pixmap: QPixmap, tamano: int, sigma: float) -> QPixmap:
+    return _aplicar_por_canal(pixmap, lambda canal: filtro_gauss(canal, tamano, sigma))
 
 
 FILTERS: list[Filter] = [

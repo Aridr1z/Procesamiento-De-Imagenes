@@ -19,7 +19,7 @@ from src.processing.distancias import (
     distancia_city_block,
     distancia_euclidiana,
 )
-from src.processing.filters import FILTERS, Filter, box
+from src.processing.filters import FILTERS, Filter, box, gauss
 
 IMAGEN_PROYECTO_P1 = Path(__file__).resolve().parent / "images" / "images.jpeg"
 
@@ -39,6 +39,7 @@ class MainWindow(QMainWindow):
         self.filters_panel = FiltersPanel(self)
         self.filters_panel.filter_selected.connect(self.apply_filter)
         self.filters_panel.box_filter_requested.connect(self.apply_box_filter)
+        self.filters_panel.gauss_filter_requested.connect(self.apply_gauss_filter)
         self.filters_panel.points_mode_requested.connect(self.iniciar_seleccion_puntos)
         self.image_view.point_a_selected.connect(
             lambda _punto: self.filters_panel.marcar_punto_a_elegido()
@@ -163,6 +164,11 @@ class MainWindow(QMainWindow):
 
     def apply_box_filter(self, tamano: int) -> None:
         self.apply_filter(Filter(f"Box {tamano}x{tamano}", lambda p: box(p, tamano)))
+
+    def apply_gauss_filter(self, tamano: int, sigma: float) -> None:
+        self.apply_filter(
+            Filter(f"Gauss {tamano}x{tamano} s={sigma}", lambda p: gauss(p, tamano, sigma))
+        )
 
     def reset_image(self) -> None:
         if self._original_pixmap is None:

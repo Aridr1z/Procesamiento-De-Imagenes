@@ -1,5 +1,6 @@
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
+    QDoubleSpinBox,
     QFrame,
     QHBoxLayout,
     QLabel,
@@ -17,6 +18,7 @@ class FiltersPanel(QWidget):
     filter_selected = Signal(Filter)
     points_mode_requested = Signal()
     box_filter_requested = Signal(int)
+    gauss_filter_requested = Signal(int, float)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -30,6 +32,7 @@ class FiltersPanel(QWidget):
         self._layout.addWidget(QLabel("Filtros"))
         self._build_buttons()
         self._build_box_filter()
+        self._build_gauss_filter()
         self._layout.addStretch()
         self._build_puntos_calculator()
         self._build_rgb_calculator()
@@ -77,6 +80,48 @@ class FiltersPanel(QWidget):
     def _emitir_filtro_box(self) -> None:
         self._forzar_tamano_impar()
         self.box_filter_requested.emit(self._tamano_box_spin.value())
+
+    def _build_gauss_filter(self) -> None:
+        separador = QFrame(self)
+        separador.setFrameShape(QFrame.Shape.HLine)
+        self._layout.addWidget(separador)
+
+        self._layout.addWidget(QLabel("Filtro Gauss"))
+
+        tamano_layout = QHBoxLayout()
+        tamano_layout.addWidget(QLabel("Tamano (NxN)"))
+        self._tamano_gauss_spin = QSpinBox(self)
+        self._tamano_gauss_spin.setRange(3, 31)
+        self._tamano_gauss_spin.setSingleStep(2)
+        self._tamano_gauss_spin.setValue(5)
+        self._tamano_gauss_spin.editingFinished.connect(self._forzar_tamano_gauss_impar)
+        tamano_layout.addWidget(self._tamano_gauss_spin)
+        self._layout.addLayout(tamano_layout)
+
+        sigma_layout = QHBoxLayout()
+        sigma_layout.addWidget(QLabel("Sigma"))
+        self._sigma_gauss_spin = QDoubleSpinBox(self)
+        self._sigma_gauss_spin.setRange(0.1, 10.0)
+        self._sigma_gauss_spin.setSingleStep(0.1)
+        self._sigma_gauss_spin.setDecimals(1)
+        self._sigma_gauss_spin.setValue(1.0)
+        sigma_layout.addWidget(self._sigma_gauss_spin)
+        self._layout.addLayout(sigma_layout)
+
+        boton_gauss = QPushButton("Aplicar filtro Gauss", self)
+        boton_gauss.clicked.connect(self._emitir_filtro_gauss)
+        self._layout.addWidget(boton_gauss)
+
+    def _forzar_tamano_gauss_impar(self) -> None:
+        valor = self._tamano_gauss_spin.value()
+        if valor % 2 == 0:
+            self._tamano_gauss_spin.setValue(valor + 1)
+
+    def _emitir_filtro_gauss(self) -> None:
+        self._forzar_tamano_gauss_impar()
+        self.gauss_filter_requested.emit(
+            self._tamano_gauss_spin.value(), self._sigma_gauss_spin.value()
+        )
 
     def _build_puntos_calculator(self) -> None:
         separador = QFrame(self)
