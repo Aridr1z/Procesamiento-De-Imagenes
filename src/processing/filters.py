@@ -6,6 +6,7 @@ from PySide6.QtGui import QImage, QPixmap
 from src.processing.box import filtro_box
 from src.processing.color_math import luminancia_relativa_pixel
 from src.processing.gauss import filtro_gauss
+from src.processing.laplace import bordes_laplace, realce_laplace
 from src.processing.suavizado import KERNEL_SUAVIZADO_3X3, Matriz, convolucionar
 
 FilterFunc = Callable[[QPixmap], QPixmap]
@@ -86,6 +87,20 @@ def box(pixmap: QPixmap, tamano: int) -> QPixmap:
 
 def gauss(pixmap: QPixmap, tamano: int, sigma: float) -> QPixmap:
     return _aplicar_por_canal(pixmap, lambda canal: filtro_gauss(canal, tamano, sigma))
+
+
+def laplace_bordes(pixmap: QPixmap, vecindad: str) -> QPixmap:
+    return _aplicar_por_canal(pixmap, lambda canal: bordes_laplace(canal, vecindad))
+
+
+def laplace_realce(pixmap: QPixmap, vecindad: str) -> QPixmap:
+    return _aplicar_por_canal(pixmap, lambda canal: realce_laplace(canal, vecindad))
+
+
+MODOS_LAPLACE: dict[str, Callable[[QPixmap, str], QPixmap]] = {
+    "Bordes (|Laplaciano|)": laplace_bordes,
+    "Realce (original - Laplaciano)": laplace_realce,
+}
 
 
 FILTERS: list[Filter] = [

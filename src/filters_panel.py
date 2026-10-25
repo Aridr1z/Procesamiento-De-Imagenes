@@ -1,5 +1,6 @@
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
+    QComboBox,
     QDoubleSpinBox,
     QFrame,
     QHBoxLayout,
@@ -11,7 +12,8 @@ from PySide6.QtWidgets import (
 )
 
 from src.processing.color_math import luminancia_relativa_pixel
-from src.processing.filters import FILTERS, Filter
+from src.processing.filters import FILTERS, MODOS_LAPLACE, Filter
+from src.processing.laplace import KERNELS_LAPLACE
 
 
 class FiltersPanel(QWidget):
@@ -19,6 +21,7 @@ class FiltersPanel(QWidget):
     points_mode_requested = Signal()
     box_filter_requested = Signal(int)
     gauss_filter_requested = Signal(int, float)
+    laplace_filter_requested = Signal(str, str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -33,6 +36,7 @@ class FiltersPanel(QWidget):
         self._build_buttons()
         self._build_box_filter()
         self._build_gauss_filter()
+        self._build_laplace_filter()
         self._layout.addStretch()
         self._build_puntos_calculator()
         self._build_rgb_calculator()
@@ -121,6 +125,34 @@ class FiltersPanel(QWidget):
         self._forzar_tamano_gauss_impar()
         self.gauss_filter_requested.emit(
             self._tamano_gauss_spin.value(), self._sigma_gauss_spin.value()
+        )
+
+    def _build_laplace_filter(self) -> None:
+        separador = QFrame(self)
+        separador.setFrameShape(QFrame.Shape.HLine)
+        self._layout.addWidget(separador)
+
+        self._layout.addWidget(QLabel("Filtro Laplace"))
+
+        vecindad_layout = QHBoxLayout()
+        vecindad_layout.addWidget(QLabel("Vecindad"))
+        self._vecindad_laplace_combo = QComboBox(self)
+        self._vecindad_laplace_combo.addItems(list(KERNELS_LAPLACE))
+        vecindad_layout.addWidget(self._vecindad_laplace_combo)
+        self._layout.addLayout(vecindad_layout)
+
+        self._modo_laplace_combo = QComboBox(self)
+        self._modo_laplace_combo.addItems(list(MODOS_LAPLACE))
+        self._layout.addWidget(self._modo_laplace_combo)
+
+        boton_laplace = QPushButton("Aplicar filtro Laplace", self)
+        boton_laplace.clicked.connect(self._emitir_filtro_laplace)
+        self._layout.addWidget(boton_laplace)
+
+    def _emitir_filtro_laplace(self) -> None:
+        self.laplace_filter_requested.emit(
+            self._vecindad_laplace_combo.currentText(),
+            self._modo_laplace_combo.currentText(),
         )
 
     def _build_puntos_calculator(self) -> None:

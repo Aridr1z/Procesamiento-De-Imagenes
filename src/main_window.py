@@ -19,7 +19,7 @@ from src.processing.distancias import (
     distancia_city_block,
     distancia_euclidiana,
 )
-from src.processing.filters import FILTERS, Filter, box, gauss
+from src.processing.filters import FILTERS, MODOS_LAPLACE, Filter, box, gauss
 
 IMAGEN_PROYECTO_P1 = Path(__file__).resolve().parent / "images" / "images.jpeg"
 
@@ -40,6 +40,7 @@ class MainWindow(QMainWindow):
         self.filters_panel.filter_selected.connect(self.apply_filter)
         self.filters_panel.box_filter_requested.connect(self.apply_box_filter)
         self.filters_panel.gauss_filter_requested.connect(self.apply_gauss_filter)
+        self.filters_panel.laplace_filter_requested.connect(self.apply_laplace_filter)
         self.filters_panel.points_mode_requested.connect(self.iniciar_seleccion_puntos)
         self.image_view.point_a_selected.connect(
             lambda _punto: self.filters_panel.marcar_punto_a_elegido()
@@ -168,6 +169,12 @@ class MainWindow(QMainWindow):
     def apply_gauss_filter(self, tamano: int, sigma: float) -> None:
         self.apply_filter(
             Filter(f"Gauss {tamano}x{tamano} s={sigma}", lambda p: gauss(p, tamano, sigma))
+        )
+
+    def apply_laplace_filter(self, vecindad: str, modo: str) -> None:
+        aplicar_modo = MODOS_LAPLACE[modo]
+        self.apply_filter(
+            Filter(f"Laplace {vecindad} - {modo}", lambda p: aplicar_modo(p, vecindad))
         )
 
     def reset_image(self) -> None:
